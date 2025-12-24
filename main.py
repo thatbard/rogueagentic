@@ -12,7 +12,7 @@ def main():
         raise RuntimeError("failed to load GEMINI_API_KEY")
     
     client = genai.Client(api_key=api_key)
-    request = "Why is Boot.dev such a great place to learn backend development? Use one paragraph maximum."
+    request = "How much wood would a wood-chuck chuck if a wood-chuck could chuck wood?"
     response = client.models.generate_content(model=model, contents=request)
 
     if response.usage_metadata == None:
