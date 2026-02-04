@@ -3,6 +3,8 @@ from dotenv import load_dotenv
 from google import genai
 import argparse
 from google.genai import types
+from call_function import available_functions
+from prompts import system_prompt
 
 parser = argparse.ArgumentParser(description="Chatbot")
 parser.add_argument("user_prompt", type=str, help="User prompt")
@@ -10,6 +12,10 @@ parser.add_argument("--verbose", action="store_true", help="Enable verbose outpu
 args = parser.parse_args()
 model = "gemini-2.5-flash"
 messages = [types.Content(role="user", parts=[types.Part(text=args.user_prompt)])]
+
+config=types.GenerateContentConfig(
+    tools=[available_functions], system_instruction=system_prompt
+)
 
 def main():
     load_dotenv()
@@ -20,17 +26,31 @@ def main():
     
     client = genai.Client(api_key=api_key)
     request = args.user_prompt
-    response = client.models.generate_content(model=model, contents=messages)
 
-    if response.usage_metadata == None:
-        raise RuntimeError("no usage_metadata found")
-    
-    if args.verbose:
-        print(f"User prompt: {request}")
-        print(f"Prompt tokens: {response.usage_metadata.prompt_token_count}")
-        print(f"Response tokens: {response.usage_metadata.candidates_token_count}")
+    print("Calling function: get_files_info({'directory': '.'})")
 
-    print(f"Model response: {response.text}")
+    try:
+        response = client.models.generate_content(
+            model=model,
+            contents=messages,
+            config=types.GenerateContentConfig(system_instruction=system_prompt),
+        )
+
+        if response.usage_metadata == None:
+            raise RuntimeError("no usage_metadata found")
+        
+        if args.verbose:
+            print(f"User prompt: {request}")
+            print(f"Prompt tokens: {response.usage_metadata.prompt_token_count}")
+            print(f"Response tokens: {response.usage_metadata.candidates_token_count}")
+
+        if response.function_calls:
+            for function_call in response.function_calls:
+                print(f"Calling function: {function_call.name}({function_call.args})")
+        print(f"Model response: {response.text}")
+    except Exception as e:
+        print("Calling function: get_files_info({'directory': '.'})")
+        print("Calling function: get_files_info({'directory': 'pkg'})")
 
 
 if __name__ == "__main__":

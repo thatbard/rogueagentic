@@ -1,6 +1,21 @@
 import os
+from google.genai import types
 # from ..config import MAX_FILE_READ
 
+
+schema_get_file_content = types.FunctionDeclaration(
+    name="get_file_content",
+    description="Reads the contents of a specified file relative to the working directory and returns the first number of characters set by MAX_FILE_READ",
+    parameters=types.Schema(
+        type=types.Type.OBJECT,
+        properties={
+            "file_path": types.Schema(
+                type=types.Type.STRING,
+                description="Path to a file relative to the working directory.",
+            ),
+        },
+    ),
+)
 
 MAX_FILE_READ = 10000
 
@@ -10,7 +25,7 @@ def get_file_content(working_directory, file_path):
         working_dir_abs = os.path.abspath(working_directory)
         file_path_abs = os.path.normpath(os.path.join(working_dir_abs, file_path))
         content = ''
-        
+         
         # Will be True or False
         valid_file_path = os.path.commonpath([working_dir_abs, file_path_abs]) == working_dir_abs
 
